@@ -15,7 +15,7 @@ Tf = 10;
 method = 3;
 
 % Desired Position
-x = 0;
+x = 5;
 y = 5;
 z = -2;
 
@@ -159,8 +159,6 @@ function eta_trajectory = ROV_LQRcontrol(Initial_eta, Trajectory, s_time, LQR_ga
 
         % Set Error
         Error = Current_eta - Desired_eta;
-        Error_X_world = Error(1:6);
-        Error_V_body  = Error(7:12);
        
         % Transformation Matrix of linear velocity
         R = [cos(ps)*cos(th), -sin(ps)*cos(ph)+sin(ph)*sin(th)*cos(ps),  sin(ps)*sin(ph)+sin(th)*cos(ps)*cos(ph);
@@ -251,18 +249,11 @@ function eta_trajectory = ROV_LQRcontrol(Initial_eta, Trajectory, s_time, LQR_ga
               zg * W  * sin(th)           ; 
                                          0];
                                      
-        % Set Body Frame Error (World Frame -> Body Frame)
-        Error_X_body = J.'* Error_X_world;
-        Error_body = [Error_X_body; Error_V_body];
-        
-        U = -LQR_gain * Error_body;
+        U = -LQR_gain * Error;
         
         X = [x; y; z; ph; th; ps];
         V = [u; v; w;  p;  q;  r];
 
-        % (Word -> Body) 
-        X = J.'* X;
-        
         State = [X;V];
         
         % Dynamics
@@ -270,9 +261,6 @@ function eta_trajectory = ROV_LQRcontrol(Initial_eta, Trajectory, s_time, LQR_ga
         State = S_list(end,(1:12)).';
         X = State(1:6);
         V = State(7:12);
-    
-        % (Body -> World) 
-        X = J * X;
 
         % Update eta
         Current_eta = [X; V]
